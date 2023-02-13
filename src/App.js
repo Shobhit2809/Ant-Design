@@ -1,32 +1,23 @@
 import logo from './logo.svg';
 import './App.css';
 import 'antd/dist/reset.css';
-import {Button} from 'antd'
+import {Button,Input} from 'antd'
 import { useState } from 'react';
-import {PoweroffOutlined} from '@ant-design/icons'
+import {UserOutlined} from '@ant-design/icons'
 
-function App() {
-  const dabaMera = (e) =>{
-    console.log('daba diya');
-  }
-  const[loading,setLoading] = useState(true)
-  setTimeout(()=>{
-    setLoading(false)
-  },2000)
-
-
+const App = ()=>{
   return (
     <div className="App">
       <header className="App-header">
-        <Button type='primary' block onClick={dabaMera} loading={loading}
-        className='my_button'
-        style={{backgroundColor:'orange',color:'red'}}
-        icon={<PoweroffOutlined/>}>
-          Lauda Mera
-        </Button>
+        <Input placeholder='Name' maxLength={10} type='password' 
+        prefix={<UserOutlined/>} allowClear>
+        </Input>
+        <Input.Search placeholder='Name' maxLength={10} type='password' 
+        prefix={<UserOutlined/>} allowClear>
+        </Input.Search>
       </header>
     </div>
   );
-}
+  }
 
 export default App;
