@@ -2,66 +2,72 @@ import logo from './logo.svg';
 import './App.css';
 import 'antd/dist/reset.css';
 import {Table} from 'antd'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {PoweroffOutlined} from '@ant-design/icons'
 
 
 
 function App() {
-  const data = [
-    {
-      name:'Name 1',
-      age:10,
-      address:'Address 1',
-      key:'1'
-    },
-    {
-      name:'Name 2',
-      age:30,
-      address:'Address 1',
-      key:'2'
-    },
-    {
-      name:'Name 3',
-      age:30,
-      address:'Address 1',
-      key:'3'
-    },
-]
+  
+  const[loading,setLoading]  = useState(false)
+  const [dataSource, setdataSource] = useState([])
+  const [page,setPage] = useState(1)
+  const [pageSize,setPageSize] = useState(10)
+
+  useEffect(()=>{
+    setLoading(true)
+    fetch("https://jsonplaceholder.typicode.com/todos")
+    .then(response=>response.json())
+    .then(data=>setdataSource(data))
+    .catch(err=>{console.log(err);})
+    .finally(setLoading(false))
+  },[])
 
   const columns= [
-    {
-      title:'Name',
-      dataIndex:'name',
-      key:'key',
-      render: name=>{
-        return <a href="">{name}</a>
-      }
-    },
-    {
-      title:'Age',
-      dataIndex:'age',
-      key:'key',
-      sorter: (a,b) => a.age - b.age
-    },
-    {
-      title:'Address',
-      dataIndex:'address',
-      key:'key'
-    },
-    {
-      title:'Graduated',
-      key:'key',
-      render: payload =>{
-        return <p>{payload.age>20 ? 'True':'False'}</p>
-      }
+  {
+    key:"1",
+    title:'ID',
+    dataIndex:'id'
+  },
+  {
+    key:"2",
+    title:'User ID',
+    dataIndex:'userId',
+    sorter:(record1,record2)=>{
+      return record1.userId>record2.userId
     }
+  },
+  {
+    key:"3",
+    title:'Status',
+    dataIndex:'completed',
+    render:(completed)=>{
+      return <p>{completed?'Complete':'In Progress'}</p>
+    },
+    filters:[
+      {text:'Complete',value:true},
+      {text:'In Progress',value:false}
+    ],
+    onFilter:(value, record)=>{
+      return record.completed === value
+    }
+  },
   ]
 
   return (
     <div className="App">
       <header className="App-header">
-        <Table dataSource={data} columns={columns}>
+        <Table loading={loading} dataSource={dataSource} 
+        columns={columns} pagination={{
+          current:page,
+          // rows per page
+          pageSize:pageSize,
+          onChange:(page,pageSize)=>{
+            setPage(page)
+            setPageSize(pageSize)
+          }
+
+        }}>
 
         </Table>
       </header>
