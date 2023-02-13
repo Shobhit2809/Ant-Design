@@ -1,20 +1,25 @@
 import logo from './logo.svg';
 import './App.css';
 import 'antd/dist/reset.css';
-import {Button,Input} from 'antd'
+import {Select} from 'antd'
 import { useState } from 'react';
-import {UserOutlined} from '@ant-design/icons'
+import {PoweroffOutlined} from '@ant-design/icons'
 
-const App = ()=>{
+
+
+function App() {
+  const fruits = ['Banana','Mango','Orange','Curry']
+
   return (
     <div className="App">
       <header className="App-header">
-        <Input placeholder='Name' maxLength={10} type='password' 
-        prefix={<UserOutlined/>} allowClear>
-        </Input>
-        <Input.Search placeholder='Name' maxLength={10} type='password' 
-        prefix={<UserOutlined/>} allowClear>
-        </Input.Search>
+        <p>Which is your favourite food?</p>
+        {/* You can also search in it */}
+        <Select mode='multiple' allowClear maxTagCount={2} placeholder='Select fruit' style={{width:'50%'}}>
+          {fruits.map((fruit,index)=>{
+            return <Select.Option key={index} value={fruit}></Select.Option>
+          })}
+        </Select>
       </header>
     </div>
   );
