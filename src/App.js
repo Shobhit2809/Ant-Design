@@ -1,159 +1,242 @@
 import logo from './logo.svg';
-import './App.css';
-import 'antd/dist/reset.css';
-import {Button, Table,Modal,Input} from 'antd'
-import { useEffect, useState } from 'react';
-import {EditOutlined,DeleteOutlined} from '@ant-design/icons'
 
+import 'antd/dist/reset.css';
+// put css after that of antdesign
+import './App.css';
+import {Form,Table,Button,Modal,Input} from 'antd'
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const {Item} = Form
+const baseUrl = "http://localhost:3001/artistas";
+
+const layout = {
+  labelCol:{
+    span: 8
+  },
+  wrapperCol:{
+    span:16
+  }
+}
 
 function App() {
   
-  const[isEditing,setIsEditing] = useState(false)
-  const [editingStudent, setEditingStudent] = useState(null)
+  const[data,setData] = useState([])
+  const [modalInsert, setModalInsert] = useState(false)
+  const[modalEdit,setModalEdit] = useState(false)
+  const[modalDelete,setModalDelete] = useState(false)
+  const[artista, setArtista] = useState({
+    // name of attributes should match with the api
+    id:'',
+    artista:'',
+    pais:'',
+    periodo:''
+  })
 
-  const columns= [
-  {
-    key:'1',
-    title:'ID',
-    dataIndex:'id'
-  
-  },
-  {
-    key:'2',
-    title:'Name',
-    dataIndex:'name'
-  },
-  {
-    key:'3',
-    title:'Email',
-    dataIndex:'email'
-  },
-  {
-    key:'4',
-    title:'Address',
-    dataIndex:'address'
-  },
-  {
-    key:'5',
-    title:'Actions',
-    // record maane ek single row jisko delete karna hai
-    render:(record)=>{
-      return(
+  const insertModal=()=>{
+    setModalInsert(!modalInsert)
+  }
+   const editModal=()=>{
+    setModalEdit(!modalEdit)
+  }
+   const deleteModal=()=>{
+    setModalDelete(!modalDelete)
+  }
+
+  const handleChange = e =>{
+    const{name, value} = e.target
+    setArtista({
+      ...artista,
+      [name]:value ,
+    })
+  }
+
+  const selectArtist = (fila, caso)=>{
+    setArtista(fila);
+    (caso==="Editar")?editModal():deleteModal();
+  }
+
+  const columns = [
+    {
+      title:'ID',
+      dataIndex:'id',
+      key:'id'
+    },
+    {
+      title:'Artista',
+      dataIndex:'artista',
+      key:'artista'
+    },
+    {
+      title:'Pais',
+      dataIndex:'pais',
+      key:'pais'
+    },
+    {
+      title:'Periodo de actividad',
+      dataIndex:'periodo',
+      key:'periodo'
+    },
+    {
+      title:'actions',
+      key:'actions',
+      // fila is the row
+      render:(fila)=>(
         <>
-        <EditOutlined onClick={()=>{oneditStudent(record)}}/>
-        <DeleteOutlined onClick={()=>{onDeleteStudent(record)}} style={{color:"red",marginLeft:12}}/>
+        <Button type='primary' onClick={()=>selectArtist(fila,"Editar")}>Edit</Button>{" "}
+        <Button type='primary' danger onClick={()=>selectArtist(fila,"dlete")}>delete</Button>
+
         </>
       )
-    }
-  }
+    },
+
   ]
-
-  const [dataSource, setDataSource] = useState([
-    {
-      id:1,
-      name:'John',
-      email:'john@gmail.com',
-      address:'john Address'
-    },
-    {
-      id:2,
-      name:'lund',
-      email:'lund@gmail.com',
-      address:'lund Address'
-    },
-    {
-      id:3,
-      name:'bhand',
-      email:'bhand@gmail.com',
-      address:'bhand Address'
-    },
-    {
-      id:4,
-      name:'ghamnad',
-      email:'ghamnad@gmail.com',
-      address:'ghamnad Address'
-    },
-    {
-      id:5,
-      name:'phirse lund',
-      email:'phirse lund@gmail.com',
-      address:'phirse lund Address'
-    },
-  ])
-
-  const onAddStudent=()=>{
-    const randomNumber = parseInt(Math.random()*1000)
-    const newStudent = {
-      id:randomNumber,
-      name: "Name "+randomNumber,
-      email: randomNumber+"@gmail.com",
-      address: "Address "+randomNumber
-    }
-    setDataSource(pre=>{
-      return [...pre,newStudent]
+ 
+  const peticionGet = async()=>{
+    await axios.get(baseUrl)
+    .then(response=>{
+      setData(response.data)
+      console.log(response.data)
+    }).catch(error=>{
+      console.log(error)
     })
   }
 
-  const onDeleteStudent = (record)=>{
-    Modal.confirm({
-      title:'Are you sure you want to delete this student?',
-      okText:"Yes",
-      okType:"danger",
-      onOk:()=>{
-        setDataSource(pre=>{
-          return pre.filter(student => student.id!=record.id)
-        })
-      }
+  const peticionPost = async()=>{
+    delete artista.id
+    await axios.post(baseUrl,artista)
+    .then(response=>{
+      setData(data.concat(response.data))
+      insertModal()
+    }).catch(error=>{
+      console.log(error)
     })
   }
-  const oneditStudent = (record) =>{
-    setIsEditing(true)
-    setEditingStudent({...record})
-  } 
-  const resetEditing = ()=>{
-    setIsEditing(false)
-    setEditingStudent(null)
+
+  const peticionPut = async()=>{
+    await axios.put(baseUrl+"/"+artista.id,artista)
+    .then(response=>{
+      var dataAuxiliar = data;
+      dataAuxiliar.map(elemento=>{
+        if(elemento.id === artista.id){
+          elemento.artista = artista.artista
+          elemento.pais=artista.pais
+          elemento.periodo = artista.periodo
+        }
+      })
+      setData(dataAuxiliar)
+      editModal()
+    }).catch(error=>{
+      console.log(error)
+    })
   }
+
+  const peticionDelete = async()=>{
+    await axios.delete(baseUrl+"/"+artista.id)
+    .then(response=>{
+      setData(data.filter(elemento=>elemento.id!=artista.id))
+      deleteModal()
+    }).catch(error=>{
+      console.log(error)
+    })
+  }
+
+  useEffect(()=>{
+    peticionGet()
+  },[])
+
   return (
     <div className="App">
-      <header className="App-header">
-        <Button onClick={onAddStudent}>Add a new Student</Button>
-      <Table columns={columns} dataSource={dataSource} ></Table>
-      <Modal title="Edit Student" 
-      visible={isEditing} 
-      onCancel={()=>{resetEditing()}} 
-      onOk={()=>{
-        setDataSource(pre=>{
-          return pre.map(student=>{
-            if(student.id === editingStudent.id){
-              return editingStudent
-            }
-            else{return student}
-          })
-        })
-        resetEditing()
-      }}
-      okText="Save"
-      >
-        {/* if it is not null */}
-        <Input value={editingStudent?.name} onChange={(e)=>{
-          setEditingStudent(pre=>{
-            return {...pre, name:e.target.value}
-          })
-        }}/>
-        <Input value={editingStudent?.email} onChange={(e)=>{
-          setEditingStudent(pre=>{
-            return {...pre, email:e.target.value}
-          })
-        }}/>
-        <Input value={editingStudent?.address} onChange={(e)=>{
-          setEditingStudent(pre=>{
-            return {...pre, address:e.target.value}
-          })
-        }}/>
-      </Modal>
-      </header>
+      <br/>
+      <br/>
+      <Button type='primary' className='insertButton' onClick={insertModal}>Insert</Button>
+      <br/>
+      <br/>
+     <Table columns={columns} dataSource={data}></Table>
+
+    {/* INSERT MODAL */}
+
+     <Modal
+     visible={modalInsert}
+     title="Insert new task"
+    //  on close remove input data
+     destroyOnClose={true}
+     onCancel={insertModal}
+     centered
+     footer={[
+      <Button onClick={insertModal}>Cancel</Button>,
+      <Button type='primary' onClick={peticionPost}>Insert</Button>
+     ]}
+     >
+      <Form {...layout}>
+        {/* name of input should match with api attributes name for handleChange 
+        to work */}
+        <Item label="Artista">
+          <Input name='artista' onChange={handleChange}/>
+        </Item>
+
+        <Item label="Pais">
+          <Input name='pais' onChange={handleChange}/>
+        </Item>
+
+        <Item label="Artista">
+          <Input name='periodo' onChange={handleChange}/>
+        </Item>
+      </Form>
+     </Modal>
+
+    {/* EDIT MODAL */}
+
+     <Modal
+     visible={modalEdit}
+     title="Edit task"
+    //  on close remove input data
+    //  destroyOnClose={true}
+     onCancel={editModal}
+     centered
+     footer={[
+      <Button onClick={editModal}>Cancel</Button>,
+      <Button type='primary' onClick={peticionPut}>Edit</Button>
+     ]}
+     >
+      <Form {...layout}>
+        {/* name of input should match with api attributes name for handleChange 
+        to work */}
+        <Item label="Artista">
+          {/* when artista exists */}
+          <Input name='artista' onChange={handleChange} value={artista && artista.artista}/>
+        </Item>
+
+        <Item label="Pais">
+          <Input name='pais' onChange={handleChange} value={artista && artista.pais}/>
+        </Item>
+
+        <Item label="Artista">
+          <Input name='periodo' onChange={handleChange} value={artista && artista.periodo}/>
+        </Item>
+      </Form>
+     </Modal>
+
+{/* DELETE MODAL */}
+
+     <Modal
+     visible={modalDelete}
+    
+    //  on close remove input data
+    //  destroyOnClose={true}
+     onCancel={deleteModal}
+     centered
+     footer={[
+      <Button onClick={deleteModal}>Cancel</Button>,
+      <Button type='primary' onClick={peticionDelete} danger>Delete</Button>
+     ]}
+     >
+      Are you sure you want to delete this task <b>{artista && artista.artista}</b>
+     </Modal>
+
+
     </div>
+
   );
     }
 
